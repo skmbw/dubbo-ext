@@ -191,7 +191,7 @@ public class ProtobufObjectInput implements ObjectInput {
         }
 
         // 集合和对象类型和基本类型分开，代码更整洁
-        int totalLength = readInt();
+        int totalLength = byteBuffer.getInt();
         if (totalLength == 0) {
             switch (type) {
                 case 0: // 对象
@@ -204,7 +204,7 @@ public class ProtobufObjectInput implements ObjectInput {
                     return Collections.emptyMap();
             }
         }
-        int nameLength = readInt();
+        int nameLength = byteBuffer.getInt();
         byte[] nameBytes = new byte[nameLength];
         byteBuffer.get(nameBytes);
         String className = new String(nameBytes, "UTF-8");
