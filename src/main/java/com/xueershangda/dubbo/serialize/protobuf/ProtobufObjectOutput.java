@@ -206,20 +206,21 @@ public class ProtobufObjectOutput implements ObjectOutput {
             }
             cls = list.get(0).getClass();
             String className = cls.getName();
-            byte[] classNameBytes = className.getBytes("UTF-8");
-            int classNameLength = classNameBytes.length;
+//            byte[] classNameBytes = className.getBytes("UTF-8");
+//            int classNameLength = classNameBytes.length;
             byte[] dataBytes = collectToBytes(cls, list);
             int dataLength = dataBytes.length;
             // 9 = 1 + 4 + 4
-            int totalLength = 9 + classNameLength + dataLength;
+//            int totalLength = 9 + classNameLength + dataLength;
+            int totalLength = 5 + dataLength;
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("writeObject(List<{}>), dataLength=[{}].", className, totalLength);
             }
             check(totalLength);
             byteBuffer.put((byte) 1); // 类型
             byteBuffer.putInt(totalLength);
-            byteBuffer.putInt(classNameLength);
-            byteBuffer.put(classNameBytes);
+//            byteBuffer.putInt(classNameLength);
+//            byteBuffer.put(classNameBytes);
             byteBuffer.put(dataBytes);
         } else if (obj instanceof Set) {
             Set set = (Set) obj;
@@ -234,20 +235,21 @@ public class ProtobufObjectOutput implements ObjectOutput {
             }
             cls = set.iterator().next().getClass();
             String className = cls.getName();
-            byte[] classNameBytes = className.getBytes("UTF-8");
-            int classNameLength = classNameBytes.length;
+//            byte[] classNameBytes = className.getBytes("UTF-8");
+//            int classNameLength = classNameBytes.length;
             byte[] dataBytes = collectToBytes(cls, set);
             int dataLength = dataBytes.length;
             // 9 = 1 + 4 + 4
-            int totalLength = 9 + classNameLength + dataLength;
+//            int totalLength = 9 + classNameLength + dataLength;
+            int totalLength = 5 + dataLength;
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("writeObject(Set<{}>), dataLength=[{}].", className, totalLength);
             }
             check(totalLength);
             byteBuffer.put((byte) 2); // 类型
             byteBuffer.putInt(totalLength);
-            byteBuffer.putInt(classNameLength);
-            byteBuffer.put(classNameBytes);
+//            byteBuffer.putInt(classNameLength);
+//            byteBuffer.put(classNameBytes);
             byteBuffer.put(dataBytes);
         } else if (obj instanceof Map) {
             Map map = (Map) obj;
@@ -263,20 +265,21 @@ public class ProtobufObjectOutput implements ObjectOutput {
             // value对象的类型
             cls = map.values().iterator().next().getClass();
             String className = cls.getName();
-            byte[] nameBytes = className.getBytes("UTF-8");
-            int nameLength = nameBytes.length;
+//            byte[] nameBytes = className.getBytes("UTF-8");
+//            int nameLength = nameBytes.length;
             byte[] mapBytes = mapToBytes(cls, map);
             int dataLength = mapBytes.length;
             // 9 = 1 + 4 + 4
-            int totalLength = 9 + nameLength + dataLength;
+//            int totalLength = 9 + nameLength + dataLength;
+            int totalLength = 5 + dataLength;
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("writeObject(Map<String, {}>), dataLength=[{}].", className, totalLength);
             }
             check(totalLength);
             byteBuffer.put((byte) 3); // 类型
             byteBuffer.putInt(totalLength);
-            byteBuffer.putInt(nameLength);
-            byteBuffer.put(nameBytes);
+//            byteBuffer.putInt(nameLength);
+//            byteBuffer.put(nameBytes);
             byteBuffer.put(mapBytes);
         } else if (obj instanceof Number) {
             if (LOGGER.isDebugEnabled()) {
@@ -367,17 +370,18 @@ public class ProtobufObjectOutput implements ObjectOutput {
             byte[] bytes = ProtostuffIOUtil.toByteArray(obj, schema, buffer);
             int length = bytes.length;
             String className = cls.getName();
-            byte[] nameBytes = className.getBytes("UTF-8");
-            int nameLength = nameBytes.length;
-            int totalLength = 9 + nameLength + length;
+//            byte[] nameBytes = className.getBytes("UTF-8");
+//            int nameLength = nameBytes.length;
+//            int totalLength = 9 + nameLength + length;
+            int totalLength = 5 + length;
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("writeObject({}), dataLength=[{}].", className, totalLength);
             }
             check(totalLength);
             byteBuffer.put((byte) 0);
             byteBuffer.putInt(totalLength);
-            byteBuffer.putInt(nameLength);
-            byteBuffer.put(nameBytes);
+//            byteBuffer.putInt(nameLength);
+//            byteBuffer.put(nameBytes);
             byteBuffer.put(bytes);
         }
     }
