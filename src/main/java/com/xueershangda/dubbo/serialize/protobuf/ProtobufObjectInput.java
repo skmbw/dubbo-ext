@@ -38,6 +38,7 @@ public class ProtobufObjectInput implements ObjectInput {
     }
 
     public boolean readBool() throws IOException {
+        byteBuffer.get();
         boolean b = byteBuffer.get() != 0;
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("readBool, value=[{}].", b);
@@ -46,6 +47,7 @@ public class ProtobufObjectInput implements ObjectInput {
     }
 
     public byte readByte() throws IOException {
+        byteBuffer.get();
         byte b = byteBuffer.get();
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("readByte value=[{}].", b);
@@ -54,6 +56,7 @@ public class ProtobufObjectInput implements ObjectInput {
     }
 
     public short readShort() throws IOException {
+        byteBuffer.get();
         short s = byteBuffer.getShort();
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("readShort value=[{}].", s);
@@ -62,6 +65,7 @@ public class ProtobufObjectInput implements ObjectInput {
     }
 
     public int readInt() throws IOException {
+        byteBuffer.get();
         int i = byteBuffer.getInt();
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("readInt, value=[{}].", i);
@@ -70,6 +74,7 @@ public class ProtobufObjectInput implements ObjectInput {
     }
 
     public long readLong() throws IOException {
+        byteBuffer.get();
         long l = byteBuffer.getLong();
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("readLong, value=[{}].", l);
@@ -78,6 +83,7 @@ public class ProtobufObjectInput implements ObjectInput {
     }
 
     public float readFloat() throws IOException {
+        byteBuffer.get();
         float f = byteBuffer.getFloat();
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("readFloat, value=[{}].", f);
@@ -86,6 +92,7 @@ public class ProtobufObjectInput implements ObjectInput {
     }
 
     public double readDouble() throws IOException {
+        byteBuffer.get();
         double d = byteBuffer.getDouble();
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("readDouble, value=[{}].", d);
