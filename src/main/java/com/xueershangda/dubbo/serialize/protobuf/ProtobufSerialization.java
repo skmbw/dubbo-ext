@@ -15,7 +15,7 @@ import java.io.OutputStream;
  */
 public class ProtobufSerialization implements Serialization {
     public byte getContentTypeId() {
-        return 9;
+        return 13;
     }
 
     public String getContentType() {
