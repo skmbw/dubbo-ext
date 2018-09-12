@@ -44,7 +44,7 @@ public class ProtobufObjectOutput implements ObjectOutput {
         }
         check(2);
         byteBuffer.put((byte) 13); // 数据类型
-        byteBuffer.put((byte) 1);
+        byteBuffer.put(v ? (byte)1 : 0);
     }
 
     @Override
