@@ -243,7 +243,8 @@ public class ProtobufObjectInput implements ObjectInput {
     @SuppressWarnings("unchecked")
     public <T> T readObject(Class<T> cls) throws IOException, ClassNotFoundException {
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("readObject(Class<{}>)", cls.getName());
+            Type[] types = ReflectUtils.getGenericTypeArray(cls);
+            LOGGER.debug("readObject(Class<{}>), type=[{}].", cls.getName(), types);
         }
         return (T) readObject();
     }
