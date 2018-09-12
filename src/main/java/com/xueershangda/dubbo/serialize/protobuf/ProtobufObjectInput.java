@@ -130,13 +130,20 @@ public class ProtobufObjectInput implements ObjectInput {
         if (length != 0) {
             byte[] data = new byte[length];
             byteBuffer.get(data);
-            return new String(data, "UTF-8");
+            String s = new String(data, "UTF-8");
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("readString, s=[{}].", s);
+            }
+            return s;
         }
         return null;
     }
 
     private byte[] readByteArray() throws IOException {
         int length = byteBuffer.getInt();
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("readByteArray, dataLength=[{}].", length);
+        }
         if (length != 0) {
             byte[] data = new byte[length];
             byteBuffer.get(data);
@@ -162,29 +169,62 @@ public class ProtobufObjectInput implements ObjectInput {
         // 基本类型和复合类型在一起，导致获取数据长度有问题
         switch (type) {
             case 4:
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("readObject, int.");
+                }
                 return byteBuffer.getInt();
             case 5:
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("readObject, long.");
+                }
                 return byteBuffer.getLong();
             case 6:
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("readObject, double.");
+                }
                 return byteBuffer.getDouble();
             case 7:
                 // 已经读取过标志位了，不再去mark reset，接着读
                 String s = readString();
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("readObject, BigInteger.");
+                }
                 return new BigInteger(s == null ? "0" : s);
             case 8:
                 s = readString();
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("readObject, BigDecimal.");
+                }
                 return new BigDecimal(s == null ? "0" : s);
             case 9:
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("readObject, byte.");
+                }
                 return byteBuffer.get();
             case 10:
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("readObject, float.");
+                }
                 return byteBuffer.getFloat();
             case 11:
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("readObject, short.");
+                }
                 return byteBuffer.getShort();
             case 12:
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("readObject, String.");
+                }
                 return readString();
             case 13:
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("readObject, boolean.");
+                }
                 return byteBuffer.get() != 0;
             case 14:
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("readObject, byte array.");
+                }
                 return readByteArray();
             case 16: // 异常
                 int totalLength = byteBuffer.getInt();
@@ -199,6 +239,9 @@ public class ProtobufObjectInput implements ObjectInput {
                     message = new String(messageBytes, "UTF-8");
                 }
                 String className = new String(classNameBytes, "UTF-8");
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("readObject, Throwable[{}], message=[{}].", className, message);
+                }
                 return new RuntimeException(className + ";message=" + message);
         }
 
