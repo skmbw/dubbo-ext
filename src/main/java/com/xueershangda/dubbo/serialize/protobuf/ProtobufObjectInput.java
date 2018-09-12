@@ -302,12 +302,6 @@ public class ProtobufObjectInput implements ObjectInput {
             }
         }
 
-//        int nameLength = byteBuffer.getInt();
-//        byte[] nameBytes = new byte[nameLength];
-        // 可以直接指定position跳过，后面再更改
-//        byteBuffer.get(nameBytes);
-
-//        byte[] dataBytes = new byte[totalLength - nameLength - 9];
         byte[] dataBytes = new byte[totalLength - 5];
         byteBuffer.get(dataBytes);
         switch (dataType) {
