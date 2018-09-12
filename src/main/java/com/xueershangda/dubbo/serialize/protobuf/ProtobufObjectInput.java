@@ -3,12 +3,11 @@ package com.xueershangda.dubbo.serialize.protobuf;
 import com.alibaba.dubbo.common.URL;
 import com.alibaba.dubbo.common.compiler.support.ClassUtils;
 import com.alibaba.dubbo.common.serialize.ObjectInput;
-import io.protostuff.MessageCollectionSchema;
-import io.protostuff.ProtostuffIOUtil;
-import io.protostuff.Schema;
-import io.protostuff.StringMapSchema;
+import io.protostuff.*;
 import io.protostuff.runtime.RuntimeSchema;
 import org.apache.commons.io.IOUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,63 +23,87 @@ import java.util.*;
  */
 public class ProtobufObjectInput implements ObjectInput {
 
+    private static final Logger LOGGER = LogManager.getLogger(ProtobufObjectInput.class);
+
     private byte[] bytes;
     private ByteBuffer byteBuffer;
+    private ByteArrayInput input;
 
     public ProtobufObjectInput(URL url, InputStream inputStream) throws IOException {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("构造 ProtobufObjectInput, URL=[{}].", url.toFullString());
+        }
         bytes = IOUtils.toByteArray(inputStream);
+        input = new ByteArrayInput(bytes, 0, bytes.length, false);
         byteBuffer = ByteBuffer.wrap(bytes);
     }
 
-    @Override
     public boolean readBool() throws IOException {
-        byteBuffer.get();
-        return byteBuffer.get() != 0;
-    }
-
-    @Override
-    public byte readByte() throws IOException {
-        byteBuffer.get();
-        return byteBuffer.get();
-    }
-
-    @Override
-    public short readShort() throws IOException {
-        byteBuffer.get();
-        return byteBuffer.getShort();
-    }
-
-    @Override
-    public int readInt() throws IOException {
-        byteBuffer.get();
-        return byteBuffer.getInt();
-    }
-
-    @Override
-    public long readLong() throws IOException {
-        byteBuffer.get();
-        return byteBuffer.getInt();
-    }
-
-    @Override
-    public float readFloat() throws IOException {
-        byteBuffer.get();
-        return byteBuffer.getFloat();
-    }
-
-    @Override
-    public double readDouble() throws IOException {
-        byteBuffer.get();
-        return byteBuffer.getDouble();
-    }
-
-    @Override
-    public String readUTF() throws IOException {
-        byte type = byteBuffer.get();
-        if (type != 12) { // 不是string类型
-            return null;
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("readBool.");
         }
-        return readString();
+        return input.readBool();
+    }
+
+    public byte readByte() throws IOException {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("readByte.");
+        }
+        return (byte) input.readInt32();
+    }
+
+    public short readShort() throws IOException {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("readShort.");
+        }
+        return (short) input.readInt32();
+    }
+
+    public int readInt() throws IOException {
+        int i = input.readInt32();
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("readInt, value=[{}].", i);
+        }
+        return i;
+    }
+
+    public long readLong() throws IOException {
+        long l = input.readInt64();
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("readLong, value=[{}].", l);
+        }
+        return l;
+    }
+
+    public float readFloat() throws IOException {
+        float f = input.readFloat();
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("readFloat, value=[{}].", f);
+        }
+        return f;
+    }
+
+    public double readDouble() throws IOException {
+        double d = input.readDouble();
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("readDouble, value=[{}].", d);
+        }
+        return d;
+    }
+
+    public String readUTF() throws IOException {
+        String s = input.readString();
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("readUTF, value=[{}].", s);
+        }
+        return s;
+    }
+
+    public byte[] readBytes() throws IOException {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("readBytes.");
+        }
+        return input.readByteArray();
     }
 
     private String readString() throws IOException {
@@ -91,15 +114,6 @@ public class ProtobufObjectInput implements ObjectInput {
             return new String(data, "UTF-8");
         }
         return null;
-    }
-
-    @Override
-    public byte[] readBytes() throws IOException {
-        byte type = byteBuffer.get();
-        if (type != 14) { // 不是byte[]
-            return new byte[0];
-        }
-        return getBytes();
     }
 
     private byte[] getBytes() throws IOException {
@@ -116,6 +130,9 @@ public class ProtobufObjectInput implements ObjectInput {
     @SuppressWarnings("unchecked")
     public Object readObject() throws IOException, ClassNotFoundException {
         if (bytes == null || bytes.length == 0) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("readObject, byteArray is null, return null.");
+            }
             return null;
         }
 
