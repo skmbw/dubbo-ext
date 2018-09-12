@@ -140,32 +140,30 @@ public class ProtobufObjectInput implements ObjectInput {
         // 基本类型和复合类型在一起，导致获取数据长度有问题
         switch (type) {
             case 4:
-                return byteBuffer.getInt();
+                return readInt();
             case 5:
-                return byteBuffer.getLong();
+                return readLong();
             case 6:
-                return byteBuffer.getDouble();
+                return readDouble();
             case 7:
-                String s = readString();
+                String s = readUTF();
                 return new BigInteger(s == null ? "0" : s);
             case 8:
-                s = readString();
+                s = readUTF();
                 return new BigDecimal(s == null ? "0" : s);
             case 9:
                 // 标志位 不想 再重置了
-                return byteBuffer.get();
+                return readByte();
             case 10:
-                return byteBuffer.getFloat();
+                return readFloat();
             case 11:
-                return byteBuffer.getShort();
+                return readShort();
             case 12:
-                return readString();
+                return readUTF();
             case 13:
-                return byteBuffer.get() != 0;
+                return readBool();
             case 14:
-                return getBytes();
-//            case 15: // 数组的序列化是支持的，但是性能没有List好，建议使用List代替
-//                throw new UnsupportedEncodingException("Please use List instead of.");
+                return readBytes();
             case 16: // 异常
                 int totalLength = byteBuffer.getInt();
                 int nameLength = byteBuffer.getInt();
@@ -183,7 +181,7 @@ public class ProtobufObjectInput implements ObjectInput {
         }
 
         // 集合和对象类型和基本类型分开，代码更整洁
-        int totalLength = byteBuffer.getInt();
+        int totalLength = readInt();
         if (totalLength == 0) {
             switch (type) {
                 case 0: // 对象
@@ -196,7 +194,7 @@ public class ProtobufObjectInput implements ObjectInput {
                     return Collections.emptyMap();
             }
         }
-        int nameLength = byteBuffer.getInt();
+        int nameLength = readInt();
         byte[] nameBytes = new byte[nameLength];
         byteBuffer.get(nameBytes);
         String className = new String(nameBytes, "UTF-8");

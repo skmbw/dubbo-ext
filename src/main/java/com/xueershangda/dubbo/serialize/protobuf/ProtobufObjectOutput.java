@@ -255,7 +255,7 @@ public class ProtobufObjectOutput implements ObjectOutput {
                 writeFloat(v);
             } else if (obj instanceof Short) {
                 short v = (short) obj;
-                writeFloat(v);
+                writeShort(v);
             } else {
                 throw new RuntimeException("不支持的数字类型:" + obj.getClass().getName());
             }
