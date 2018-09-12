@@ -3,6 +3,7 @@ package com.xueershangda.dubbo.serialize.protobuf;
 import com.alibaba.dubbo.common.URL;
 import com.alibaba.dubbo.common.compiler.support.ClassUtils;
 import com.alibaba.dubbo.common.serialize.ObjectInput;
+import com.vteba.utils.reflection.ReflectUtils;
 import io.protostuff.*;
 import io.protostuff.runtime.RuntimeSchema;
 import org.apache.commons.io.IOUtils;
@@ -241,12 +242,20 @@ public class ProtobufObjectInput implements ObjectInput {
     @Override
     @SuppressWarnings("unchecked")
     public <T> T readObject(Class<T> cls) throws IOException, ClassNotFoundException {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("readObject(Class<{}>)", cls.getName());
+        }
         return (T) readObject();
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public <T> T readObject(Class<T> cls, Type type) throws IOException, ClassNotFoundException {
+        if (LOGGER.isDebugEnabled()) {
+            Class<?> clazz = ReflectUtils.getGenericClass(type);
+            LOGGER.debug("readObject(Class<{}>), GenericClass=[{}], type=[{}].",
+                    cls.getName(), clazz, type.getTypeName());
+        }
         return (T) readObject();
     }
 
