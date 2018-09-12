@@ -1,5 +1,6 @@
 package com.xueershangda.dubbo.serialize.protobuf;
 
+import com.alibaba.dubbo.common.URL;
 import com.alibaba.dubbo.common.compiler.support.ClassUtils;
 import com.alibaba.dubbo.common.serialize.ObjectInput;
 import io.protostuff.MessageCollectionSchema;
@@ -26,7 +27,7 @@ public class ProtobufObjectInput implements ObjectInput {
     private byte[] bytes;
     private ByteBuffer byteBuffer;
 
-    public ProtobufObjectInput(InputStream inputStream) throws IOException {
+    public ProtobufObjectInput(URL url, InputStream inputStream) throws IOException {
         bytes = IOUtils.toByteArray(inputStream);
         byteBuffer = ByteBuffer.wrap(bytes);
     }

@@ -1,5 +1,6 @@
 package com.xueershangda.dubbo.serialize.protobuf;
 
+import com.alibaba.dubbo.common.URL;
 import com.alibaba.dubbo.common.serialize.ObjectOutput;
 import io.protostuff.*;
 import io.protostuff.runtime.RuntimeSchema;
@@ -24,7 +25,7 @@ public class ProtobufObjectOutput implements ObjectOutput {
     private OutputStream output;
     private ByteBuffer byteBuffer;
 
-    public ProtobufObjectOutput(OutputStream output) {
+    public ProtobufObjectOutput(URL url, OutputStream output) {
         this.output = output;
         this.byteBuffer = ByteBuffer.allocate(1024);
     }
