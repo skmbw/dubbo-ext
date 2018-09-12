@@ -247,68 +247,8 @@ public class ProtobufObjectInput implements ObjectInput {
                 }
                 return new RuntimeException(className + ";message=" + message);
         }
-
-        // 集合和对象类型和基本类型分开，代码更整洁
-//        int totalLength = byteBuffer.getInt();
-//        if (totalLength == 0) {
-//            if (LOGGER.isDebugEnabled()) {
-//                LOGGER.debug("readObject, Non primitive Type, empty Object, dataType=[{}].", type);
-//            }
-//            switch (type) {
-//                case 0: // 对象
-//                    return null;
-//                case 1:
-//                    return Collections.emptyList();
-//                case 2:
-//                    return Collections.emptySet();
-//                case 3:
-//                    return Collections.emptyMap();
-//            }
-//        }
-//        int nameLength = byteBuffer.getInt();
-//        byte[] nameBytes = new byte[nameLength];
-//        byteBuffer.get(nameBytes);
-//        String className = new String(nameBytes, "UTF-8");
-//        Class clazz = ClassUtils.forName(className);
-//        Schema schema = RuntimeSchema.getSchema(clazz);
-//
-//        byte[] dataBytes = new byte[totalLength - nameLength - 9];
-//        byteBuffer.get(dataBytes);
-//        switch (type) {
-//            case 0:
-//                if (LOGGER.isDebugEnabled()) {
-//                    LOGGER.debug("readObject, className=[{}].", className);
-//                }
-//                Object object = newInstance(clazz);
-//                ProtostuffIOUtil.mergeFrom(dataBytes, object, schema);
-//                return object;
-//            case 1:
-//                if (LOGGER.isDebugEnabled()) {
-//                    LOGGER.debug("readObject, className=[List<{}>].", className);
-//                }
-//                MessageCollectionSchema collectionSchema = new MessageCollectionSchema(schema);
-//                List list = new ArrayList();
-//                ProtostuffIOUtil.mergeFrom(dataBytes, list, collectionSchema);
-//                return list;
-//            case 2:
-//                if (LOGGER.isDebugEnabled()) {
-//                    LOGGER.debug("readObject, className=[Set<{}>].", className);
-//                }
-//                collectionSchema = new MessageCollectionSchema(schema);
-//                Set set = new HashSet();
-//                ProtostuffIOUtil.mergeFrom(dataBytes, set, collectionSchema);
-//                return set;
-//            case 3:
-//                if (LOGGER.isDebugEnabled()) {
-//                    LOGGER.debug("readObject, className=[Map<String, {}>].", className);
-//                }
-//                StringMapSchema stringSchema = new StringMapSchema(schema);
-//                Map map = new HashMap();
-//                ProtostuffIOUtil.mergeFrom(dataBytes, map, stringSchema);
-//                return map;
-//        }
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("readObject, unknown data type=[{}], skip and return null.", type);
+        if (LOGGER.isWarnEnabled()) {
+            LOGGER.warn("readObject, unknown data type=[{}], skip and return null.", type);
         }
         return null;
     }
@@ -421,14 +361,4 @@ public class ProtobufObjectInput implements ObjectInput {
         }
         return (T) readObject();
     }
-
-//    private Object newInstance(Class clazz) {
-//        Object entity;
-//        try {
-//            entity = clazz.newInstance();
-//        } catch (Exception e) {
-//            throw new RuntimeException("实例化对象的异常", e);
-//        }
-//        return entity;
-//    }
 }
