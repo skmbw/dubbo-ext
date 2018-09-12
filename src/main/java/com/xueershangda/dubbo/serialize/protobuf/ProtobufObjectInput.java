@@ -223,9 +223,6 @@ public class ProtobufObjectInput implements ObjectInput {
         byte[] nameBytes = new byte[nameLength];
         byteBuffer.get(nameBytes);
         String className = new String(nameBytes, "UTF-8");
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("readObject, className=[{}], dataType=[{}].", className, type);
-        }
         Class clazz = ClassUtils.forName(className);
         Schema schema = RuntimeSchema.getSchema(clazz);
 
@@ -233,26 +230,41 @@ public class ProtobufObjectInput implements ObjectInput {
         byteBuffer.get(dataBytes);
         switch (type) {
             case 0:
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("readObject, className=[{}].", className);
+                }
                 Object object = newInstance(clazz);
                 ProtostuffIOUtil.mergeFrom(dataBytes, object, schema);
                 return object;
             case 1:
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("readObject, className=[List<{}>].", className);
+                }
                 MessageCollectionSchema collectionSchema = new MessageCollectionSchema(schema);
                 List list = new ArrayList();
                 ProtostuffIOUtil.mergeFrom(dataBytes, list, collectionSchema);
                 return list;
             case 2:
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("readObject, className=[Set<{}>].", className);
+                }
                 collectionSchema = new MessageCollectionSchema(schema);
                 Set set = new HashSet();
                 ProtostuffIOUtil.mergeFrom(dataBytes, set, collectionSchema);
                 return set;
             case 3:
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("readObject, className=[Map<String, {}>].", className);
+                }
                 StringMapSchema stringSchema = new StringMapSchema(schema);
                 Map map = new HashMap();
                 ProtostuffIOUtil.mergeFrom(dataBytes, map, stringSchema);
                 return map;
             default:
 
+        }
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("readObject, unknown data type=[{}], skip and return null.", type);
         }
         return null;
     }
