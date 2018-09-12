@@ -19,6 +19,8 @@ import java.nio.ByteBuffer;
 import java.util.*;
 
 /**
+ * Protobuf 数据反序列化。第一个字节是类型，第 2-5是数据长度。基本类型使用ByteBuffer来处理。对象使用 Protobuf。
+ *
  * @author yinlei
  * @since 2018/9/11 12:28
  */
@@ -31,7 +33,7 @@ public class ProtobufObjectInput implements ObjectInput {
 
     public ProtobufObjectInput(URL url, InputStream inputStream) throws IOException {
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("构造 ProtobufObjectInput, URL=[{}].", url.toFullString());
+            LOGGER.debug("Create ProtobufObjectInput, URL=[{}].", url.toFullString());
         }
         bytes = IOUtils.toByteArray(inputStream);
         byteBuffer = ByteBuffer.wrap(bytes);

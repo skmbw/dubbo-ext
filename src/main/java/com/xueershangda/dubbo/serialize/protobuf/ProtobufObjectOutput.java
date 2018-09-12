@@ -19,6 +19,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * 基于 Protobuf的对象序列化。第一个字节是类型，第 2-5是数据长度。基本类型使用ByteBuffer来处理。对象使用 Protobuf（并且保存对象类型）。
+ *
  * @author yinlei
  * @since 2018/9/11 12:29
  */
@@ -31,7 +33,7 @@ public class ProtobufObjectOutput implements ObjectOutput {
 
     public ProtobufObjectOutput(URL url, OutputStream output) {
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("构造 ProtobufObjectOutput, URL=[{}].", url.toFullString());
+            LOGGER.debug("Create ProtobufObjectOutput, URL=[{}].", url.toFullString());
         }
         this.byteBuffer = ByteBuffer.allocate(1024);
         this.output = output;

@@ -10,6 +10,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
+ * 基于 Protobuf 的序列化
+ *
  * @author yinlei
  * @since 2018/9/11 16:27
  */
