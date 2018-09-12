@@ -37,24 +37,27 @@ public class ProtobufObjectInput implements ObjectInput {
     }
 
     public boolean readBool() throws IOException {
+        boolean b = byteBuffer.get() != 0;
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("readBool.");
+            LOGGER.debug("readBool, value=[{}].", b);
         }
-        return byteBuffer.get() != 0;
+        return b;
     }
 
     public byte readByte() throws IOException {
+        byte b = byteBuffer.get();
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("readByte.");
+            LOGGER.debug("readByte value=[{}].", b);
         }
-        return byteBuffer.get();
+        return b;
     }
 
     public short readShort() throws IOException {
+        short s = byteBuffer.getShort();
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("readShort.");
+            LOGGER.debug("readShort value=[{}].", s);
         }
-        return byteBuffer.getShort();
+        return s;
     }
 
     public int readInt() throws IOException {
@@ -109,7 +112,7 @@ public class ProtobufObjectInput implements ObjectInput {
         if (type != 14) { // 不是byte[]
             return new byte[0];
         }
-        return getBytes();
+        return readByteArray();
     }
 
     private String readString() throws IOException {
@@ -122,7 +125,7 @@ public class ProtobufObjectInput implements ObjectInput {
         return null;
     }
 
-    private byte[] getBytes() throws IOException {
+    private byte[] readByteArray() throws IOException {
         int length = byteBuffer.getInt();
         if (length != 0) {
             byte[] data = new byte[length];
@@ -152,6 +155,7 @@ public class ProtobufObjectInput implements ObjectInput {
             case 6:
                 return byteBuffer.getDouble();
             case 7:
+                // 已经读取过标志位了，不再去mark reset，接着读
                 String s = readString();
                 return new BigInteger(s == null ? "0" : s);
             case 8:
@@ -168,7 +172,7 @@ public class ProtobufObjectInput implements ObjectInput {
             case 13:
                 return byteBuffer.get() != 0;
             case 14:
-                return getBytes();
+                return readByteArray();
             case 16: // 异常
                 int totalLength = byteBuffer.getInt();
                 int nameLength = byteBuffer.getInt();

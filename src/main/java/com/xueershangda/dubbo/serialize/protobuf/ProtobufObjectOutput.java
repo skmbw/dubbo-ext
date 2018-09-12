@@ -171,7 +171,7 @@ public class ProtobufObjectOutput implements ObjectOutput {
         output.flush();
     }
 
-    private void writeBig(String v, byte type) throws IOException {
+    private void writeBigNumber(String v, byte type) throws IOException {
         byte[] bytes = v.getBytes("UTF-8");
         int len = bytes.length;
         check(5 + len);
@@ -292,11 +292,11 @@ public class ProtobufObjectOutput implements ObjectOutput {
             } else if (obj instanceof BigInteger) {
                 BigInteger s = (BigInteger) obj;
                 String v = s.toString();
-                writeBig(v, (byte) 7);
+                writeBigNumber(v, (byte) 7);
             } else if (obj instanceof BigDecimal) {
                 BigDecimal s = (BigDecimal) obj;
                 String v = s.toString();
-                writeBig(v, (byte) 8);
+                writeBigNumber(v, (byte) 8);
             } else if (obj instanceof Byte) {
                 byte v = (byte) obj;
                 writeByte(v);
