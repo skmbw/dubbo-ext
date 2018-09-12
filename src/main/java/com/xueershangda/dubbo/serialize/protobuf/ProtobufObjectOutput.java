@@ -26,99 +26,149 @@ public class ProtobufObjectOutput implements ObjectOutput {
 
     private static final Logger LOGGER = LogManager.getLogger(ProtobufObjectOutput.class);
 
-    private ProtobufOutput output;
-    private OutputStream stream;
+    private OutputStream output;
     private ByteBuffer byteBuffer;
 
     public ProtobufObjectOutput(URL url, OutputStream output) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("构造 ProtobufObjectOutput, URL=[{}].", url.toFullString());
         }
-        this.output = new ProtobufOutput(LinkedBuffer.allocate(1024));
         this.byteBuffer = ByteBuffer.allocate(1024);
-        this.stream = output;
+        this.output = output;
     }
 
+    @Override
     public void writeBool(boolean v) throws IOException {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("writeBool, value=[{}].", v);
         }
-        output.writeBool(1, v, false);
+        check(2);
+        byteBuffer.put((byte) 13); // 数据类型
+        byteBuffer.put((byte) 1);
     }
 
+    @Override
     public void writeByte(byte v) throws IOException {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("writeByte, value=[{}].", v);
         }
-        output.writeInt32(1, v, false);
+        check(2);
+        byteBuffer.put((byte) 9);
+        byteBuffer.put(v);
     }
 
+    @Override
     public void writeShort(short v) throws IOException {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("writeShort, value=[{}].", v);
         }
-        output.writeInt32(1, v, false);
+        check(3);
+        byteBuffer.put((byte) 11);
+        byteBuffer.putShort(v);
     }
 
+    @Override
     public void writeInt(int v) throws IOException {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("writeInt, value=[{}].", v);
         }
-        output.writeInt32(1, v, false);
+        check(5);
+        byteBuffer.put((byte) 4);
+        byteBuffer.putInt(v);
     }
 
+    @Override
     public void writeLong(long v) throws IOException {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("writeLong, value=[{}].", v);
         }
-        output.writeInt64(1, v, false);
+        check(9);
+        byteBuffer.put((byte) 5);
+        byteBuffer.putLong(v);
     }
 
+    @Override
     public void writeFloat(float v) throws IOException {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("writeFloat, value=[{}].", v);
         }
-        output.writeFloat(1, v, false);
+        check(5);
+        byteBuffer.put((byte) 10);
+        byteBuffer.putFloat(v);
     }
 
+    @Override
     public void writeDouble(double v) throws IOException {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("writeDouble, value=[{}].", v);
         }
-        output.writeDouble(1, v, false);
+        check(9);
+        byteBuffer.put((byte) 6);
+        byteBuffer.putDouble(v);
     }
 
+    @Override
     public void writeUTF(String v) throws IOException {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("writeUTF(String), value=[{}].", v);
         }
-        output.writeString(1, v, false);
+        check(1);
+        byteBuffer.put((byte) 12); // 数据类型
+        if (v == null) {
+            check(4);
+            byteBuffer.putInt(0); // 长度为0
+        } else {
+            byte[] bytes = v.getBytes("UTF-8");
+            int len = bytes.length;
+            check(4 + len);
+            byteBuffer.putInt(len); // int 占 4 位
+            byteBuffer.put(bytes); // 存入数据
+        }
     }
 
+    @Override
     public void writeBytes(byte[] v) throws IOException {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("writeBytes, byteArrayLength=[{}].", v != null ? v.length : 0);
         }
-        output.writeByteArray(1, v, false);
+        if (v == null || v.length == 0) {
+            check(5);
+            byteBuffer.put((byte) 14);
+            byteBuffer.putInt(0);
+        } else {
+            writeBytes(v, 0 , v.length);
+        }
     }
 
+    @Override
     public void writeBytes(byte[] v, int off, int len) throws IOException {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("writeBytes(offset), byteArrayLength=[{}], offset=[{}], len=[{}].",
                     v != null ? v.length : 0, off, len);
         }
-        output.writeByteRange(true, 1, v, off, len, false);
+        check(1);
+        byteBuffer.put((byte) 14);
+        if (v == null) {
+            check(4);
+            byteBuffer.putInt(0);
+        } else {
+            check(4 + len);
+            byteBuffer.putInt(len);
+            byteBuffer.put(v, off, len);
+        }
     }
 
+    @Override
     public void flushBuffer() throws IOException {
-        output.writeByteArray(1, byteBuffer.array(), false);
-        // Not null
-        byte[] byteArray = output.toByteArray();
+        byteBuffer.flip();
+        int limit = byteBuffer.limit();
+        byte[] bytes = new byte[limit];
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("flushBuffer, byteArrayLength=[{}].", byteArray.length);
+            LOGGER.debug("flushBuffer, byteArrayLength=[{}].", limit);
         }
-        stream.write(byteArray);
-        stream.flush();
+        byteBuffer.get(bytes);
+        output.write(bytes);
+        output.flush();
     }
 
     private void writeBig(String v, byte type) throws IOException {
