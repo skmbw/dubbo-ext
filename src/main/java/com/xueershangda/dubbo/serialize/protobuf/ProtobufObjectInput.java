@@ -156,6 +156,9 @@ public class ProtobufObjectInput implements ObjectInput {
         }
 
         byte type = byteBuffer.get();
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("readObject, dataType=[{}].", type);
+        }
         // 基本类型和复合类型在一起，导致获取数据长度有问题
         switch (type) {
             case 4:
@@ -202,6 +205,9 @@ public class ProtobufObjectInput implements ObjectInput {
         // 集合和对象类型和基本类型分开，代码更整洁
         int totalLength = byteBuffer.getInt();
         if (totalLength == 0) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("readObject, Non primitive Type, empty Object, dataType=[{}].", type);
+            }
             switch (type) {
                 case 0: // 对象
                     return null;
@@ -217,6 +223,9 @@ public class ProtobufObjectInput implements ObjectInput {
         byte[] nameBytes = new byte[nameLength];
         byteBuffer.get(nameBytes);
         String className = new String(nameBytes, "UTF-8");
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("readObject, className=[{}], dataType=[{}].", className, type);
+        }
         Class clazz = ClassUtils.forName(className);
         Schema schema = RuntimeSchema.getSchema(clazz);
 
@@ -248,6 +257,7 @@ public class ProtobufObjectInput implements ObjectInput {
         return null;
     }
 
+    // 主要用于接收方法参数
     @Override
     @SuppressWarnings("unchecked")
     public <T> T readObject(Class<T> cls) throws IOException, ClassNotFoundException {
@@ -258,6 +268,7 @@ public class ProtobufObjectInput implements ObjectInput {
         return (T) readObject();
     }
 
+    // 主要用于接收返回结果
     @Override
     @SuppressWarnings("unchecked")
     public <T> T readObject(Class<T> cls, Type type) throws IOException, ClassNotFoundException {
