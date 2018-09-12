@@ -4,11 +4,13 @@ import com.alibaba.dubbo.common.URL;
 import com.alibaba.dubbo.common.compiler.support.ClassUtils;
 import com.alibaba.dubbo.common.serialize.ObjectInput;
 import com.vteba.utils.reflection.ReflectUtils;
+import com.vteba.web.utils.ProtoLiteUtils;
 import io.protostuff.*;
 import io.protostuff.runtime.RuntimeSchema;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.objenesis.ObjenesisHelper;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -155,9 +157,9 @@ public class ProtobufObjectInput implements ObjectInput {
     @Override
     @SuppressWarnings("unchecked")
     public Object readObject() throws IOException, ClassNotFoundException {
-        if (bytes == null || bytes.length == 0) {
+        if (bytes.length == 0) {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("readObject, byteArray is null, return null.");
+                LOGGER.debug("readObject, byteArray is empty, return null.");
             }
             return null;
         }
@@ -303,8 +305,6 @@ public class ProtobufObjectInput implements ObjectInput {
                 Map map = new HashMap();
                 ProtostuffIOUtil.mergeFrom(dataBytes, map, stringSchema);
                 return map;
-            default:
-
         }
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("readObject, unknown data type=[{}], skip and return null.", type);
@@ -319,6 +319,95 @@ public class ProtobufObjectInput implements ObjectInput {
         if (LOGGER.isDebugEnabled()) {
             Type[] types = ReflectUtils.getGenericTypeArray(cls);
             LOGGER.debug("readObject(Class<{}>), type=[{}].", cls.getName(), types);
+        }
+        byteBuffer.mark(); // 如果没有处理到，reset回来
+        byte type = byteBuffer.get();
+        // 基本类型和异常
+        if (type > 3) {
+            byteBuffer.reset();
+            return (T) readObject();
+        }
+
+        // 集合和对象类型和基本类型分开，代码更整洁
+        int totalLength = byteBuffer.getInt();
+        if (totalLength == 0) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("readObject, Non primitive Type, empty Object, dataType=[{}].", type);
+            }
+            switch (type) {
+                case 0: // 对象
+                    return null;
+                case 1:
+                    return (T) Collections.emptyList();
+                case 2:
+                    return (T) Collections.emptySet();
+                case 3:
+                    return (T) Collections.emptyMap();
+            }
+        }
+
+        int nameLength = byteBuffer.getInt();
+        byte[] nameBytes = new byte[nameLength];
+        // 可以直接指定position跳过，后面再更改
+        byteBuffer.get(nameBytes);
+        String className = cls.getName();
+//        Schema schema = RuntimeSchema.getSchema(cls);
+
+        ProtoLiteUtils.fromByteArray(null, cls);
+
+        byte[] dataBytes = new byte[totalLength - nameLength - 9];
+        byteBuffer.get(dataBytes);
+        switch (type) {
+            case 0:
+                // 如果是基本类型，不用再获取了，就是她
+//                Class<T> genericClass = ReflectUtils.getGenericClass(cls);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("readObject, className=[{}].", cls);
+                }
+                Schema<T> schema = RuntimeSchema.getSchema(cls);
+                T entity = ObjenesisHelper.newInstance(cls);
+
+                ProtostuffIOUtil.mergeFrom(dataBytes, entity, schema);
+                return entity;
+            case 1:
+                Class<T> genericClass = ReflectUtils.getGenericClass(cls);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("readObject, className=[List<{}>].", genericClass);
+                }
+                schema = RuntimeSchema.getSchema(genericClass);
+
+                MessageCollectionSchema collectionSchema = new MessageCollectionSchema(schema);
+                List list = new ArrayList();
+                ProtostuffIOUtil.mergeFrom(dataBytes, list, collectionSchema);
+                return (T) list;
+            case 2:
+                genericClass = ReflectUtils.getGenericClass(cls);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("readObject, className=[Set<{}>].", genericClass);
+                }
+                schema = RuntimeSchema.getSchema(genericClass);
+
+                collectionSchema = new MessageCollectionSchema(schema);
+                Set set = new HashSet();
+                ProtostuffIOUtil.mergeFrom(dataBytes, set, collectionSchema);
+                return (T) set;
+            case 3:
+                genericClass = ReflectUtils.getGenericClass(cls, 1);
+                if (genericClass == null) {
+                    genericClass = (Class<T>) String.class;
+                }
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("readObject, className=[Map<String, {}>].", genericClass);
+                }
+                schema = RuntimeSchema.getSchema(genericClass);
+
+                StringMapSchema stringSchema = new StringMapSchema(schema);
+                Map map = new HashMap();
+                ProtostuffIOUtil.mergeFrom(dataBytes, map, stringSchema);
+                return (T) map;
+            default:
+                byteBuffer.reset();
+
         }
         return (T) readObject();
     }
