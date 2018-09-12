@@ -27,14 +27,12 @@ public class ProtobufObjectInput implements ObjectInput {
 
     private byte[] bytes;
     private ByteBuffer byteBuffer;
-    private ByteArrayInput input;
 
     public ProtobufObjectInput(URL url, InputStream inputStream) throws IOException {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("构造 ProtobufObjectInput, URL=[{}].", url.toFullString());
         }
         bytes = IOUtils.toByteArray(inputStream);
-        input = new ByteArrayInput(bytes, 0, bytes.length, false);
         byteBuffer = ByteBuffer.wrap(bytes);
     }
 
@@ -42,25 +40,25 @@ public class ProtobufObjectInput implements ObjectInput {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("readBool.");
         }
-        return input.readBool();
+        return byteBuffer.get() != 0;
     }
 
     public byte readByte() throws IOException {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("readByte.");
         }
-        return (byte) input.readInt32();
+        return byteBuffer.get();
     }
 
     public short readShort() throws IOException {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("readShort.");
         }
-        return (short) input.readInt32();
+        return byteBuffer.getShort();
     }
 
     public int readInt() throws IOException {
-        int i = input.readInt32();
+        int i = byteBuffer.getInt();
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("readInt, value=[{}].", i);
         }
@@ -68,7 +66,7 @@ public class ProtobufObjectInput implements ObjectInput {
     }
 
     public long readLong() throws IOException {
-        long l = input.readInt64();
+        long l = byteBuffer.getLong();
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("readLong, value=[{}].", l);
         }
@@ -76,7 +74,7 @@ public class ProtobufObjectInput implements ObjectInput {
     }
 
     public float readFloat() throws IOException {
-        float f = input.readFloat();
+        float f = byteBuffer.getFloat();
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("readFloat, value=[{}].", f);
         }
@@ -84,7 +82,7 @@ public class ProtobufObjectInput implements ObjectInput {
     }
 
     public double readDouble() throws IOException {
-        double d = input.readDouble();
+        double d = byteBuffer.getDouble();
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("readDouble, value=[{}].", d);
         }
@@ -92,7 +90,11 @@ public class ProtobufObjectInput implements ObjectInput {
     }
 
     public String readUTF() throws IOException {
-        String s = input.readString();
+        byte type = byteBuffer.get();
+        if (type != 12) { // 不是string类型
+            return null;
+        }
+        String s = readString();
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("readUTF, value=[{}].", s);
         }
@@ -103,7 +105,11 @@ public class ProtobufObjectInput implements ObjectInput {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("readBytes.");
         }
-        return input.readByteArray();
+        byte type = byteBuffer.get();
+        if (type != 14) { // 不是byte[]
+            return new byte[0];
+        }
+        return getBytes();
     }
 
     private String readString() throws IOException {
@@ -140,30 +146,29 @@ public class ProtobufObjectInput implements ObjectInput {
         // 基本类型和复合类型在一起，导致获取数据长度有问题
         switch (type) {
             case 4:
-                return readInt();
+                return byteBuffer.getInt();
             case 5:
-                return readLong();
+                return byteBuffer.getLong();
             case 6:
-                return readDouble();
+                return byteBuffer.getDouble();
             case 7:
-                String s = readUTF();
+                String s = readString();
                 return new BigInteger(s == null ? "0" : s);
             case 8:
-                s = readUTF();
+                s = readString();
                 return new BigDecimal(s == null ? "0" : s);
             case 9:
-                // 标志位 不想 再重置了
-                return readByte();
+                return byteBuffer.get();
             case 10:
-                return readFloat();
+                return byteBuffer.getFloat();
             case 11:
-                return readShort();
+                return byteBuffer.getShort();
             case 12:
-                return readUTF();
+                return readString();
             case 13:
-                return readBool();
+                return byteBuffer.get() != 0;
             case 14:
-                return readBytes();
+                return getBytes();
             case 16: // 异常
                 int totalLength = byteBuffer.getInt();
                 int nameLength = byteBuffer.getInt();
